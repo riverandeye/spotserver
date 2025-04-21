@@ -5,5 +5,5 @@
 ```shell
 npm install -g pnpm # install pnpm
 pnpm install        # install dependencies
-pnpm start:dev
+pnpm start:dev      # Start with hot reload
 ```
