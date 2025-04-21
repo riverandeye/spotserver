@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { FirebaseService } from '../firebase/firebase.service';
+import { UsersFirebaseService } from '../firebase/services/users.firebase.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly firebaseService: FirebaseService) {}
+  constructor(private readonly usersFirebaseService: UsersFirebaseService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const newUser = new User({
@@ -14,15 +14,15 @@ export class UsersService {
       created_time: new Date(),
     });
 
-    return this.firebaseService.createUser(newUser);
+    return this.usersFirebaseService.createUser(newUser);
   }
 
   async findAll(): Promise<User[]> {
-    return this.firebaseService.findAllUsers();
+    return this.usersFirebaseService.findAllUsers();
   }
 
   async findOne(id: string): Promise<User> {
-    const user = await this.firebaseService.findUserById(id);
+    const user = await this.usersFirebaseService.findUserById(id);
 
     if (!user) {
       throw new NotFoundException(`User with UID ${id} not found`);
@@ -32,7 +32,7 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const updatedUser = await this.firebaseService.updateUser(
+    const updatedUser = await this.usersFirebaseService.updateUser(
       id,
       updateUserDto,
     );
@@ -45,7 +45,7 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<{ success: boolean; message: string }> {
-    const result = await this.firebaseService.deleteUser(id);
+    const result = await this.usersFirebaseService.deleteUser(id);
 
     if (!result) {
       throw new NotFoundException(`User with UID ${id} not found`);

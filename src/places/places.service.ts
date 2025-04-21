@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
-import { FirebaseService } from '../firebase/firebase.service';
+import { PlacesFirebaseService } from '../firebase/services/places.firebase.service';
 import { Place, GeoPoint } from './entities/place.entity';
 
 @Injectable()
 export class PlacesService {
-  constructor(private readonly firebaseService: FirebaseService) {}
+  constructor(private readonly placesFirebaseService: PlacesFirebaseService) {}
 
   async create(createPlaceDto: CreatePlaceDto): Promise<Place> {
     // DTO의 coord 배열을 GeoPoint 객체로 변환
@@ -23,15 +23,15 @@ export class PlacesService {
       };
     }
 
-    return this.firebaseService.createPlace(placeData);
+    return this.placesFirebaseService.createPlace(placeData);
   }
 
   async findAll(options?: { type?: string; limit?: number }): Promise<Place[]> {
-    return this.firebaseService.findAllPlaces(options);
+    return this.placesFirebaseService.findAllPlaces(options);
   }
 
   async findOne(id: string): Promise<Place> {
-    const place = await this.firebaseService.findPlaceById(id);
+    const place = await this.placesFirebaseService.findPlaceById(id);
 
     if (!place) {
       throw new NotFoundException(`Place with id ${id} not found`);
@@ -55,7 +55,10 @@ export class PlacesService {
       };
     }
 
-    const updatedPlace = await this.firebaseService.updatePlace(id, placeData);
+    const updatedPlace = await this.placesFirebaseService.updatePlace(
+      id,
+      placeData,
+    );
 
     if (!updatedPlace) {
       throw new NotFoundException(`Place with id ${id} not found`);
@@ -65,7 +68,7 @@ export class PlacesService {
   }
 
   async remove(id: string): Promise<{ success: boolean; message: string }> {
-    const result = await this.firebaseService.deletePlace(id);
+    const result = await this.placesFirebaseService.deletePlace(id);
 
     if (!result) {
       throw new NotFoundException(`Place with id ${id} not found`);
@@ -78,17 +81,16 @@ export class PlacesService {
   }
 
   async findByTags(tags: string[]): Promise<Place[]> {
-    return this.firebaseService.findPlacesByTags(tags);
+    return this.placesFirebaseService.findPlacesByTags(tags);
   }
 
   async search(query: string): Promise<Place[]> {
-    return this.firebaseService.searchPlaces(query);
+    return this.placesFirebaseService.searchPlaces(query);
   }
 
   async getMainPagePlaces(limit = 10): Promise<Place[]> {
-    // 여기서는 클라이언트 사이드에서 필터링합니다. 실제로는 Firestore 인덱스를 설정하고
-    // where 쿼리를 사용하는 것이 더 효율적입니다.
-    const allPlaces = await this.firebaseService.findAllPlaces();
+    // 모든 장소 가져온 후 필터링
+    const allPlaces = await this.placesFirebaseService.findAllPlaces();
     return allPlaces
       .filter((place) => place.in_main_page === true)
       .slice(0, limit);
