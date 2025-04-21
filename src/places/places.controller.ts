@@ -32,7 +32,7 @@ export class PlacesController {
   @ApiOperation({ summary: '새로운 장소 생성' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: '장소가 성공적으로 생성되었습니다.',
+    description: 'Place has been successfully created.',
     type: Place,
   })
   async create(@Body() createPlaceDto: CreatePlaceDto): Promise<Place> {
@@ -55,7 +55,7 @@ export class PlacesController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '모든 장소 목록 반환',
+    description: 'All places retrieved successfully.',
     type: [Place],
   })
   async findAll(
@@ -79,7 +79,7 @@ export class PlacesController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '메인 페이지용 장소 목록 반환',
+    description: 'Main page places retrieved successfully.',
     type: [Place],
   })
   async getMainPagePlaces(@Query('limit') limit?: number): Promise<Place[]> {
@@ -96,7 +96,7 @@ export class PlacesController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '검색 결과 장소 목록 반환',
+    description: 'Search results retrieved successfully.',
     type: [Place],
   })
   async search(@Query('q') query: string): Promise<Place[]> {
@@ -113,7 +113,7 @@ export class PlacesController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '태그로 필터링된 장소 목록 반환',
+    description: 'Places filtered by tags retrieved successfully.',
     type: [Place],
   })
   async findByTags(@Query('tags') tagsString: string): Promise<Place[]> {
@@ -127,12 +127,12 @@ export class PlacesController {
   @ApiParam({ name: 'id', description: '장소 ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '장소 정보 반환',
+    description: 'Place retrieved successfully.',
     type: Place,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: '장소를 찾을 수 없음',
+    description: 'Place not found.',
   })
   async findOne(@Param('id') id: string): Promise<Place> {
     return this.placesService.findOne(id);
@@ -144,12 +144,12 @@ export class PlacesController {
   @ApiParam({ name: 'id', description: '장소 ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '장소가 성공적으로 업데이트되었습니다.',
+    description: 'Place has been successfully updated.',
     type: Place,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: '장소를 찾을 수 없음',
+    description: 'Place not found.',
   })
   async update(
     @Param('id') id: string,
@@ -164,11 +164,11 @@ export class PlacesController {
   @ApiParam({ name: 'id', description: '장소 ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: '장소가 성공적으로 삭제되었습니다.',
+    description: 'Place has been successfully deleted.',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: '장소를 찾을 수 없음',
+    description: 'Place not found.',
   })
   async remove(
     @Param('id') id: string,

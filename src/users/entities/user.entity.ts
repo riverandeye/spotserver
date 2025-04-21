@@ -2,44 +2,44 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class User {
   @ApiProperty({
-    description: 'The unique identifier of the user (Firebase UID)',
+    description: '사용자 고유 식별자 (Firebase UID)',
     example: '0AWIzKnEtzOJh3SG0nJVD1RMvZo2',
   })
   uid: string;
 
   @ApiProperty({
-    description: 'User email address',
+    description: '사용자 이메일 주소',
     example: 'anazarovaviktoria@gmail.com',
   })
   email: string;
 
   @ApiProperty({
-    description: 'User display name',
+    description: '사용자 표시 이름',
     example: 'Vika',
   })
   display_name: string;
 
   @ApiProperty({
-    description: 'User full name',
+    description: '사용자 전체 이름',
     example: 'Viktoriia',
   })
   full_name: string;
 
   @ApiProperty({
-    description: 'URL to user profile photo',
+    description: '사용자 프로필 사진 URL',
     example: 'https://example.com/photos/user.jpg',
   })
   photo_url: string;
 
   @ApiProperty({
-    description: 'User role in the system',
+    description: '시스템 내 사용자 권한',
     example: 'user',
     enum: ['user', 'admin'],
   })
   role: string;
 
   @ApiProperty({
-    description: 'Timestamp when the user was created',
+    description: '사용자 생성 시간',
     example: '2025-04-09T03:38:53.000Z',
   })
   created_time: Date;

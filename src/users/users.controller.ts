@@ -22,7 +22,7 @@ export class UsersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new user' })
+  @ApiOperation({ summary: '새 사용자 생성' })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'User has been successfully created.',
@@ -35,10 +35,10 @@ export class UsersController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: '모든 사용자 조회' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Return all users.',
+    description: 'All users retrieved successfully.',
     type: [User],
   })
   async findAll(): Promise<User[]> {
@@ -47,11 +47,11 @@ export class UsersController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get a user by id' })
-  @ApiParam({ name: 'id', description: 'The user ID (Firebase UID)' })
+  @ApiOperation({ summary: 'ID로 사용자 조회' })
+  @ApiParam({ name: 'id', description: '사용자 ID (Firebase UID)' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Return the user.',
+    description: 'User retrieved successfully.',
     type: User,
   })
   @ApiResponse({
@@ -64,8 +64,8 @@ export class UsersController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update a user' })
-  @ApiParam({ name: 'id', description: 'The user ID (Firebase UID)' })
+  @ApiOperation({ summary: '사용자 정보 업데이트' })
+  @ApiParam({ name: 'id', description: '사용자 ID (Firebase UID)' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'User has been successfully updated.',
@@ -84,8 +84,8 @@ export class UsersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a user' })
-  @ApiParam({ name: 'id', description: 'The user ID (Firebase UID)' })
+  @ApiOperation({ summary: '사용자 삭제' })
+  @ApiParam({ name: 'id', description: '사용자 ID (Firebase UID)' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'User has been successfully deleted.',
