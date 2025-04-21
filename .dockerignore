@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+.github
+
+# 빌드 및 의존성
+node_modules
+npm-debug.log
+dist
+coverage
+.nyc_output
+.env
+.env.*
+!.env.example
+
+# 개발 도구 구성
+.vscode
+.idea
+*.sublime-*
+*.swp
+*.swo
+
+# 테라폼 파일
+terraform
+
+# 기타
+README.md
+LICENSE
+.DS_Store 
