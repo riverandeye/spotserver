@@ -80,12 +80,31 @@ export class AdminFirebaseService implements AdminServiceInterface {
    */
   async findAll(): Promise<Admin[]> {
     try {
+      console.log('Admin findAll 호출됨');
       const snapshot = await this.firestore
         .collection(this.adminCollection)
         .get();
 
-      return snapshot.docs.map((doc) => this.convertFirestoreDocToAdmin(doc));
+      console.log(`Admin 문서 개수: ${snapshot.docs.length}`);
+      console.log(
+        '문서 ID 목록:',
+        snapshot.docs.map((doc) => doc.id),
+      );
+
+      // 컬렉션 이름 확인
+      console.log('현재 컬렉션 이름:', this.adminCollection);
+
+      const admins = snapshot.docs.map((doc) => {
+        console.log(`문서 ID: ${doc.id}, 데이터 존재 여부: ${doc.exists}`);
+        const data = doc.data();
+        console.log('문서 데이터:', JSON.stringify(data));
+        return this.convertFirestoreDocToAdmin(doc);
+      });
+
+      console.log(`변환된 Admin 객체 수: ${admins.length}`);
+      return admins;
     } catch (error) {
+      console.error('Admin findAll 오류:', error);
       throw error;
     }
   }
@@ -302,7 +321,7 @@ export class AdminFirebaseService implements AdminServiceInterface {
 
     return new Admin({
       ...data,
-      uid: doc.id,
+      uid: data.uid || doc.id,
       created_at: convertTimestampToDate(data.created_at),
       updated_at: convertTimestampToDate(data.updated_at),
       last_login: convertTimestampToDate(data.last_login),

@@ -57,8 +57,12 @@ export class AdminController {
   })
   async findAll(): Promise<Admin[]> {
     try {
-      return await this.adminService.findAll();
+      console.log('AdminController findAll 호출됨');
+      const result = await this.adminService.findAll();
+      console.log('AdminController findAll 결과:', result);
+      return result;
     } catch (error) {
+      console.error('AdminController findAll 오류:', error);
       throw new HttpException(
         error.message || '관리자 목록 조회 실패',
         HttpStatus.INTERNAL_SERVER_ERROR,
