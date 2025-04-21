@@ -6,10 +6,18 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { PlacesModule } from './places/places.module';
 import { HealthModule } from './health/health.module';
 import { PlaylistsModule } from './playlists/playlists.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   controllers: [AppController],
   providers: [AppService],
-  imports: [UsersModule, FirebaseModule, PlacesModule, HealthModule, PlaylistsModule],
+  imports: [
+    UsersModule,
+    FirebaseModule,
+    PlacesModule,
+    HealthModule,
+    PlaylistsModule,
+    AdminModule,
+  ],
 })
 export class AppModule {}
