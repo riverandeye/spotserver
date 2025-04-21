@@ -1,0 +1,320 @@
+import { Injectable } from '@nestjs/common';
+import { db } from '../firebase.config';
+import { Playlist } from '../../playlists/entities/playlist.entity';
+import { convertTimestampToDate } from '../utils/firestore-converter';
+
+@Injectable()
+export class PlaylistsFirebaseService {
+  private readonly playlistsCollection = db.collection('playlists');
+
+  /**
+   * 새로운 플레이리스트를 생성합니다.
+   */
+  async createPlaylist(playlist: Partial<Playlist>): Promise<Playlist> {
+    try {
+      // Generate a new ID if not provided
+      const playlistId = playlist.id || db.collection('playlists').doc().id;
+
+      // Prepare data for Firestore
+      const playlistData = {
+        ...playlist,
+        id: playlistId,
+        created_at: new Date(),
+        updated_at: new Date(),
+        is_visible: playlist.is_visible ?? false,
+        type: playlist.type || 'user',
+        places: playlist.places || [],
+      };
+
+      // Save to Firestore
+      await this.playlistsCollection.doc(playlistId).set(playlistData);
+
+      // Get the created document
+      const playlistDoc = await this.playlistsCollection.doc(playlistId).get();
+
+      if (!playlistDoc.exists) {
+        throw new Error('Failed to create playlist');
+      }
+
+      // Return the created playlist
+      return this.convertFirestoreDocToPlaylist(playlistDoc);
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 모든 플레이리스트를 조회합니다.
+   */
+  async findAllPlaylists(options?: {
+    type?: string;
+    owner?: string;
+    limit?: number;
+  }): Promise<Playlist[]> {
+    try {
+      let query: FirebaseFirestore.Query = this.playlistsCollection;
+
+      // Add type filter if provided
+      if (options?.type) {
+        query = query.where('type', '==', options.type);
+      }
+
+      // Add owner filter if provided
+      if (options?.owner) {
+        query = query.where('owner', '==', options.owner);
+      }
+
+      // Add limit if provided
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      const snapshot = await query.get();
+
+      return snapshot.docs.map((doc) =>
+        this.convertFirestoreDocToPlaylist(doc),
+      );
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 특정 ID의 플레이리스트를 조회합니다.
+   */
+  async findPlaylistById(id: string): Promise<Playlist | null> {
+    try {
+      const playlistDoc = await this.playlistsCollection.doc(id).get();
+
+      if (!playlistDoc.exists) {
+        return null;
+      }
+
+      return this.convertFirestoreDocToPlaylist(playlistDoc);
+    } catch (error) {
+      console.error(`Error fetching playlist with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 플레이리스트 정보를 업데이트합니다.
+   */
+  async updatePlaylist(
+    id: string,
+    playlistData: Partial<Playlist>,
+  ): Promise<Playlist | null> {
+    try {
+      // Check if playlist exists
+      const playlistDoc = await this.playlistsCollection.doc(id).get();
+
+      if (!playlistDoc.exists) {
+        return null;
+      }
+
+      // Prepare update data
+      const updateData = {
+        ...playlistData,
+        id: undefined, // Don't allow updating the ID
+        updated_at: new Date(), // Update the timestamp
+      };
+
+      // Update in Firestore
+      await this.playlistsCollection.doc(id).update(updateData);
+
+      // Get updated document
+      const updatedDoc = await this.playlistsCollection.doc(id).get();
+      return this.convertFirestoreDocToPlaylist(updatedDoc);
+    } catch (error) {
+      console.error(`Error updating playlist with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 플레이리스트를 삭제합니다.
+   */
+  async deletePlaylist(id: string): Promise<boolean> {
+    try {
+      // Check if playlist exists
+      const playlistDoc = await this.playlistsCollection.doc(id).get();
+
+      if (!playlistDoc.exists) {
+        return false;
+      }
+
+      // Delete the playlist
+      await this.playlistsCollection.doc(id).delete();
+
+      return true;
+    } catch (error) {
+      console.error(`Error deleting playlist with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 특정 장소가 포함된 플레이리스트를 검색합니다.
+   */
+  async findPlaylistsByPlace(placeId: string): Promise<Playlist[]> {
+    try {
+      // Firestore doesn't support direct array-contains queries with nested documents
+      // So we'll fetch all playlists and filter them client-side
+      const snapshot = await this.playlistsCollection.get();
+
+      const playlists = snapshot.docs
+        .map((doc) => this.convertFirestoreDocToPlaylist(doc))
+        .filter(
+          (playlist) => playlist.places && playlist.places.includes(placeId),
+        );
+
+      return playlists;
+    } catch (error) {
+      console.error(
+        `Error finding playlists containing place ${placeId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * 특정 사용자의 플레이리스트를 검색합니다.
+   */
+  async findPlaylistsByUser(userId: string): Promise<Playlist[]> {
+    try {
+      const snapshot = await this.playlistsCollection
+        .where('owner', '==', userId)
+        .get();
+
+      return snapshot.docs.map((doc) =>
+        this.convertFirestoreDocToPlaylist(doc),
+      );
+    } catch (error) {
+      console.error(`Error finding playlists for user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 장소를 플레이리스트에 추가합니다.
+   */
+  async addPlaceToPlaylist(
+    playlistId: string,
+    placeId: string,
+  ): Promise<Playlist | null> {
+    try {
+      const playlistDoc = await this.playlistsCollection.doc(playlistId).get();
+
+      if (!playlistDoc.exists) {
+        return null;
+      }
+
+      const playlist = this.convertFirestoreDocToPlaylist(playlistDoc);
+
+      // Check if the place is already in the playlist
+      if (playlist.places && playlist.places.includes(placeId)) {
+        return playlist; // Place already exists, return current playlist
+      }
+
+      // Add the place to the playlist
+      const places = playlist.places
+        ? [...playlist.places, placeId]
+        : [placeId];
+
+      // Update the playlist
+      await this.playlistsCollection.doc(playlistId).update({
+        places,
+        updated_at: new Date(),
+      });
+
+      // Get the updated playlist
+      const updatedDoc = await this.playlistsCollection.doc(playlistId).get();
+      return this.convertFirestoreDocToPlaylist(updatedDoc);
+    } catch (error) {
+      console.error(
+        `Error adding place ${placeId} to playlist ${playlistId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * 장소를 플레이리스트에서 제거합니다.
+   */
+  async removePlaceFromPlaylist(
+    playlistId: string,
+    placeId: string,
+  ): Promise<Playlist | null> {
+    try {
+      const playlistDoc = await this.playlistsCollection.doc(playlistId).get();
+
+      if (!playlistDoc.exists) {
+        return null;
+      }
+
+      const playlist = this.convertFirestoreDocToPlaylist(playlistDoc);
+
+      // Check if the place is in the playlist
+      if (!playlist.places || !playlist.places.includes(placeId)) {
+        return playlist; // Place doesn't exist, return current playlist
+      }
+
+      // Remove the place from the playlist
+      const places = playlist.places.filter((id) => id !== placeId);
+
+      // Update the playlist
+      await this.playlistsCollection.doc(playlistId).update({
+        places,
+        updated_at: new Date(),
+      });
+
+      // Get the updated playlist
+      const updatedDoc = await this.playlistsCollection.doc(playlistId).get();
+      return this.convertFirestoreDocToPlaylist(updatedDoc);
+    } catch (error) {
+      console.error(
+        `Error removing place ${placeId} from playlist ${playlistId}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Firestore 문서를 Playlist 객체로 변환합니다.
+   */
+  private convertFirestoreDocToPlaylist(
+    doc: FirebaseFirestore.DocumentSnapshot,
+  ): Playlist {
+    const data = doc.data() || {};
+
+    // Firestore 참조 객체를 문자열로 변환
+    let owner = data.owner;
+    if (owner && typeof owner === 'object' && owner._path) {
+      owner = owner._path.segments[1]; // 'users/{userId}'에서 userId 추출
+    }
+
+    let places = data.places || [];
+    if (Array.isArray(places)) {
+      places = places.map((place) => {
+        if (place && typeof place === 'object' && place._path) {
+          return place._path.segments[1]; // 'places/{placeId}'에서 placeId 추출
+        }
+        return place;
+      });
+    }
+
+    return new Playlist({
+      ...data,
+      id: doc.id,
+      owner: owner,
+      places: places,
+      created_at: convertTimestampToDate(data.created_at),
+      updated_at: convertTimestampToDate(data.updated_at),
+    });
+  }
+}

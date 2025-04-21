@@ -5,10 +5,11 @@ import { UsersModule } from './users/users.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { PlacesModule } from './places/places.module';
 import { HealthModule } from './health/health.module';
+import { PlaylistsModule } from './playlists/playlists.module';
 
 @Module({
   controllers: [AppController],
   providers: [AppService],
-  imports: [UsersModule, FirebaseModule, PlacesModule, HealthModule],
+  imports: [UsersModule, FirebaseModule, PlacesModule, HealthModule, PlaylistsModule],
 })
 export class AppModule {}
