@@ -1,5 +1,9 @@
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
+import { ConfigService } from '@nestjs/config';
+
+// Get config service instance
+const configService = new ConfigService();
 
 // Initialize Firebase if it's not already initialized
 if (!admin.apps.length) {
@@ -14,17 +18,24 @@ if (!admin.apps.length) {
 
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        databaseURL: process.env.FIREBASE_DATABASE_URL,
+        databaseURL: configService.get<string>('FIREBASE_DATABASE_URL'),
       });
     } else {
       // Fallback to local file (for development only)
       // Be sure to add this file to .gitignore
       try {
-        const serviceAccount = require('../../firebase-service-account.json');
+        const serviceAccountPath =
+          configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS') ||
+          '../../firebase-service-account.json';
+        const serviceAccount = require(
+          serviceAccountPath.startsWith('/')
+            ? serviceAccountPath
+            : '../../firebase-service-account.json',
+        );
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
           databaseURL:
-            process.env.FIREBASE_DATABASE_URL ||
+            configService.get<string>('FIREBASE_DATABASE_URL') ||
             `https://${serviceAccount.project_id}.firebaseio.com`,
         });
       } catch (error) {
