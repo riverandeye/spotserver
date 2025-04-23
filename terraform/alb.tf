@@ -49,25 +49,8 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = var.domain_name != "" && var.create_certificate ? "redirect" : "forward"
-    
-    dynamic "redirect" {
-      for_each = var.domain_name != "" && var.create_certificate ? [1] : []
-      content {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    
-    dynamic "forward" {
-      for_each = var.domain_name != "" && var.create_certificate ? [] : [1]
-      content {
-        target_group {
-          arn = aws_lb_target_group.spotserver.arn
-        }
-      }
-    }
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.spotserver.arn
   }
 
   tags = {
