@@ -2,26 +2,31 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# pnpm 설치
+RUN npm install -g pnpm
+
 # 종속성 설치
-COPY package*.json ./
-RUN npm install
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm install
 
 # 소스 코드 복사 및 빌드
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # 프로덕션 이미지
 FROM node:22-alpine
 
 WORKDIR /app
 
+# pnpm 설치
+RUN npm install -g pnpm
+
 # 프로덕션 패키지만 설치
-COPY package*.json ./
-RUN npm install --omit=dev
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm install --prod
 
 # 빌드된 파일 복사
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/firebase-service-account.json ./firebase-service-account.json
 
