@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { db } from '../firebase.config';
 import { Playlist } from '../../playlists/entities/playlist.entity';
 import { convertTimestampToDate } from '../utils/firestore-converter';
+import * as firestore from 'firebase-admin/firestore';
 
 @Injectable()
 export class PlaylistsFirebaseService {
@@ -348,5 +349,47 @@ export class PlaylistsFirebaseService {
       created_at: convertTimestampToDate(data.created_at),
       updated_at: convertTimestampToDate(data.updated_at),
     });
+  }
+
+  /**
+   * 여러 ID의 플레이리스트를 조회합니다.
+   */
+  async findPlaylistsByIds(ids: string[]): Promise<Playlist[]> {
+    try {
+      if (!ids || ids.length === 0) {
+        return [];
+      }
+
+      // Firestore는 in 쿼리에 최대 10개의 값만 허용하므로 청크로 나눠 처리
+      const chunkSize = 10;
+      const playlists: Playlist[] = [];
+
+      // ID 배열을 청크로 나누어 처리
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+
+        // 청크 크기가 1이면 단일 문서 조회
+        if (chunk.length === 1) {
+          const doc = await this.playlistsCollection.doc(chunk[0]).get();
+          if (doc.exists) {
+            playlists.push(this.convertFirestoreDocToPlaylist(doc));
+          }
+        } else {
+          // 여러 문서를 in 쿼리로 조회
+          const snapshot = await this.playlistsCollection
+            .where(firestore.FieldPath.documentId(), 'in', chunk)
+            .get();
+
+          snapshot.docs.forEach((doc) => {
+            playlists.push(this.convertFirestoreDocToPlaylist(doc));
+          });
+        }
+      }
+
+      return playlists;
+    } catch (error) {
+      console.error('Error fetching playlists by IDs:', error);
+      throw error;
+    }
   }
 }

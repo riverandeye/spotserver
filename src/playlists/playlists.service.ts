@@ -151,4 +151,18 @@ export class PlaylistsService {
 
     return result;
   }
+
+  /**
+   * 여러 ID에 해당하는 플레이리스트를 조회합니다.
+   */
+  async findByIds(ids: string[]): Promise<Playlist[]> {
+    // 중복 ID 제거
+    const uniqueIds = [...new Set(ids)];
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    return this.playlistsFirebaseService.findPlaylistsByIds(uniqueIds);
+  }
 }
