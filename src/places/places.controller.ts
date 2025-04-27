@@ -28,6 +28,26 @@ import { FindPlacesByIdsDto } from './dto/find-by-ids.dto';
 export class PlacesController {
   constructor(private readonly placesService: PlacesService) {}
 
+  @Get('bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '여러 장소 ID로 장소 조회' })
+  @ApiQuery({
+    name: 'ids',
+    description: '쉼표로 구분된 장소 ID 목록',
+    example: 'place1,place2,place3',
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '여러 장소를 성공적으로 조회했습니다.',
+    type: [Place],
+  })
+  async findByIds(@Query('ids') ids: string): Promise<Place[]> {
+    // 쉼표로 구분된 문자열을 배열로 변환
+    const placeIds = ids.split(',').filter((id) => id.trim().length > 0);
+    return this.placesService.findByIds(placeIds);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: '새로운 장소 생성' })
@@ -67,24 +87,6 @@ export class PlacesController {
       type,
       limit: limit ? +limit : undefined,
     });
-  }
-
-  @Get('main')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '메인 페이지용 장소 조회' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: '최대 결과 수',
-    type: Number,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Main page places retrieved successfully.',
-    type: [Place],
-  })
-  async getMainPagePlaces(@Query('limit') limit?: number): Promise<Place[]> {
-    return this.placesService.getMainPagePlaces(limit ? +limit : 10);
   }
 
   @Get('search')
@@ -175,25 +177,5 @@ export class PlacesController {
     @Param('id') id: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.placesService.remove(id);
-  }
-
-  @Get('bulk')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '여러 장소 ID로 장소 조회' })
-  @ApiQuery({
-    name: 'ids',
-    description: '쉼표로 구분된 장소 ID 목록',
-    example: 'place1,place2,place3',
-    required: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '여러 장소를 성공적으로 조회했습니다.',
-    type: [Place],
-  })
-  async findByIds(@Query('ids') ids: string): Promise<Place[]> {
-    // 쉼표로 구분된 문자열을 배열로 변환
-    const placeIds = ids.split(',').filter((id) => id.trim().length > 0);
-    return this.placesService.findByIds(placeIds);
   }
 }

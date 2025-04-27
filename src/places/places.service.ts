@@ -88,14 +88,6 @@ export class PlacesService {
     return this.placesFirebaseService.searchPlaces(query);
   }
 
-  async getMainPagePlaces(limit = 10): Promise<Place[]> {
-    // 모든 장소 가져온 후 필터링
-    const allPlaces = await this.placesFirebaseService.findAllPlaces();
-    return allPlaces
-      .filter((place) => place.in_main_page === true)
-      .slice(0, limit);
-  }
-
   /**
    * 여러 ID에 해당하는 장소를 조회합니다.
    */
