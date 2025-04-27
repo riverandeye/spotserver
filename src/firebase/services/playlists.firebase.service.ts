@@ -12,6 +12,11 @@ export class PlaylistsFirebaseService {
    */
   async createPlaylist(playlist: Partial<Playlist>): Promise<Playlist> {
     try {
+      // 플레이리스트 소유자(owner)가 필수인지 확인
+      if (!playlist.owner) {
+        throw new Error('Playlist owner is required');
+      }
+
       // Generate a new ID if not provided
       const playlistId = playlist.id || db.collection('playlists').doc().id;
 
@@ -176,24 +181,6 @@ export class PlaylistsFirebaseService {
         `Error finding playlists containing place ${placeId}:`,
         error,
       );
-      throw error;
-    }
-  }
-
-  /**
-   * 특정 사용자의 플레이리스트를 검색합니다.
-   */
-  async findPlaylistsByUser(userId: string): Promise<Playlist[]> {
-    try {
-      const snapshot = await this.playlistsCollection
-        .where('owner', '==', userId)
-        .get();
-
-      return snapshot.docs.map((doc) =>
-        this.convertFirestoreDocToPlaylist(doc),
-      );
-    } catch (error) {
-      console.error(`Error finding playlists for user ${userId}:`, error);
       throw error;
     }
   }

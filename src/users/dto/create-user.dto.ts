@@ -40,4 +40,13 @@ export class CreateUserDto {
     required: false,
   })
   role?: string;
+
+  @ApiProperty({
+    description: '사용자가 소유한 플레이리스트 ID 목록',
+    example: ['2LzW5kxUk6g3rh9vGddY', 'IjpGOk87YZGPe3pZlUOj'],
+    required: false,
+    isArray: true,
+    type: [String],
+  })
+  playlist_ids?: string[];
 }
