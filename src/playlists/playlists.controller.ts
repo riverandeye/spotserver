@@ -8,8 +8,6 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
-  Inject,
-  forwardRef,
   Query,
 } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
@@ -23,16 +21,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Playlist } from './entities/playlist.entity';
-import { UsersService } from '../users/users.service';
 
 @ApiTags('playlists')
 @Controller('playlists')
 export class PlaylistsController {
-  constructor(
-    private readonly playlistsService: PlaylistsService,
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly playlistsService: PlaylistsService) {}
 
   @Get('bulk')
   @HttpCode(HttpStatus.OK)
@@ -66,41 +59,7 @@ export class PlaylistsController {
     @Body() createPlaylistDto: CreatePlaylistDto,
   ): Promise<Playlist> {
     // 플레이리스트 생성
-    const createdPlaylist =
-      await this.playlistsService.create(createPlaylistDto);
-
-    try {
-      // 사용자 정보 가져오기
-      const userId = createPlaylistDto.owner;
-      const user = await this.usersService.findOne(userId);
-
-      if (user) {
-        // 현재 playlist_ids 배열 가져오기 (없으면 빈 배열로 초기화)
-        const currentPlaylistIds = user.playlist_ids || [];
-
-        // 이미 배열에 있는지 확인
-        if (!currentPlaylistIds.includes(createdPlaylist.id)) {
-          // 새 플레이리스트 ID 추가
-          const updatedPlaylistIds = [
-            ...currentPlaylistIds,
-            createdPlaylist.id,
-          ];
-
-          // 사용자 문서 업데이트
-          await this.usersService.update(userId, {
-            playlist_ids: updatedPlaylistIds,
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`Error updating user's playlist_ids:`, error);
-      // 플레이리스트 생성은 성공했으므로 오류를 무시하고 계속 진행
-      console.warn(
-        `Playlist ${createdPlaylist.id} was created but user's playlist_ids field was not updated`,
-      );
-    }
-
-    return createdPlaylist;
+    return this.playlistsService.create(createPlaylistDto);
   }
 
   @Get(':id')
