@@ -49,4 +49,12 @@ export class CreateUserDto {
     type: [String],
   })
   playlist_ids?: string[];
+
+  @ApiProperty({
+    description: '사용자의 기본 플레이리스트 ID',
+    example: '2LzW5kxUk6g3rh9vGddY',
+    required: false,
+    type: String,
+  })
+  default_playlist?: string;
 }

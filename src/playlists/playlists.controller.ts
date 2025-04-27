@@ -10,6 +10,8 @@ import {
   HttpStatus,
   HttpCode,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
@@ -29,6 +31,7 @@ import { UsersService } from '../users/users.service';
 export class PlaylistsController {
   constructor(
     private readonly playlistsService: PlaylistsService,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
   ) {}
 
