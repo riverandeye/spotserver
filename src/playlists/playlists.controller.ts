@@ -24,8 +24,6 @@ import {
 } from '@nestjs/swagger';
 import { Playlist } from './entities/playlist.entity';
 import { UsersService } from '../users/users.service';
-import { ApiProperty } from '@nestjs/swagger';
-import { FindPlaylistsByIdsDto } from './dto/find-by-ids.dto';
 
 @ApiTags('playlists')
 @Controller('playlists')
@@ -35,6 +33,27 @@ export class PlaylistsController {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
   ) {}
+
+  @Get('bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '여러 플레이리스트 ID로 플레이리스트 조회' })
+  @ApiQuery({
+    name: 'ids',
+    description: '쉼표로 구분된 플레이리스트 ID 목록',
+    example: 'playlist1,playlist2,playlist3',
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '여러 플레이리스트를 성공적으로 조회했습니다.',
+    type: [Playlist],
+  })
+  async findByIds(@Query('ids') ids: string): Promise<Playlist[]> {
+    // 쉼표로 구분된 문자열을 배열로 변환
+    console.log(ids);
+    const playlistIds = ids.split(',').filter((id) => id.trim().length > 0);
+    return this.playlistsService.findByIds(playlistIds);
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -180,25 +199,5 @@ export class PlaylistsController {
     @Param('placeId') placeId: string,
   ): Promise<Playlist> {
     return this.playlistsService.removePlace(id, placeId);
-  }
-
-  @Get('bulk')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '여러 플레이리스트 ID로 플레이리스트 조회' })
-  @ApiQuery({
-    name: 'ids',
-    description: '쉼표로 구분된 플레이리스트 ID 목록',
-    example: 'playlist1,playlist2,playlist3',
-    required: true,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '여러 플레이리스트를 성공적으로 조회했습니다.',
-    type: [Playlist],
-  })
-  async findByIds(@Query('ids') ids: string): Promise<Playlist[]> {
-    // 쉼표로 구분된 문자열을 배열로 변환
-    const playlistIds = ids.split(',').filter((id) => id.trim().length > 0);
-    return this.playlistsService.findByIds(playlistIds);
   }
 }
