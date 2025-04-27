@@ -33,18 +33,6 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '모든 사용자 조회' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'All users retrieved successfully.',
-    type: [User],
-  })
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
-  }
-
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'ID로 사용자 조회' })

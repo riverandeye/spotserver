@@ -81,42 +81,6 @@ export class PlaylistsController {
     return createdPlaylist;
   }
 
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '모든 플레이리스트 조회' })
-  @ApiQuery({
-    name: 'type',
-    required: false,
-    description: '플레이리스트 유형으로 필터링 (user, official, featured)',
-  })
-  @ApiQuery({
-    name: 'owner',
-    required: false,
-    description: '소유자 ID로 필터링',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: '최대 결과 수',
-    type: Number,
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'All playlists retrieved successfully.',
-    type: [Playlist],
-  })
-  async findAll(
-    @Query('type') type?: string,
-    @Query('owner') owner?: string,
-    @Query('limit') limit?: number,
-  ): Promise<Playlist[]> {
-    return this.playlistsService.findAll({
-      type,
-      owner,
-      limit: limit ? +limit : undefined,
-    });
-  }
-
   @Get('place/:placeId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '특정 장소가 포함된 플레이리스트 조회' })

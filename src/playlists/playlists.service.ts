@@ -16,12 +16,20 @@ export class PlaylistsService {
     return this.playlistsFirebaseService.createPlaylist(createPlaylistDto);
   }
 
-  async findAll(options?: {
-    type?: string;
-    owner?: string;
-    limit?: number;
-  }): Promise<Playlist[]> {
-    return this.playlistsFirebaseService.findAllPlaylists(options);
+  /**
+   * 사용자의 기본 플레이리스트를 생성합니다.
+   */
+  async createDefaultPlaylist(userId: string): Promise<Playlist> {
+    const defaultPlaylist: CreatePlaylistDto = {
+      name: '기본 플레이리스트',
+      description: '자동으로 생성된 기본 플레이리스트입니다.',
+      owner: userId,
+      is_visible: false,
+      type: 'user',
+      places: [],
+    };
+
+    return this.playlistsFirebaseService.createPlaylist(defaultPlaylist);
   }
 
   async findOne(id: string): Promise<Playlist> {

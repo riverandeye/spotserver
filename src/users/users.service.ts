@@ -3,10 +3,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UsersFirebaseService } from '../firebase/services/users.firebase.service';
+import { PlaylistsService } from '../playlists/playlists.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersFirebaseService: UsersFirebaseService) {}
+  constructor(
+    private readonly usersFirebaseService: UsersFirebaseService,
+    private readonly playlistsService: PlaylistsService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const newUser = new User({
@@ -14,11 +18,35 @@ export class UsersService {
       created_time: new Date(),
     });
 
-    return this.usersFirebaseService.createUser(newUser);
-  }
+    const createdUser = await this.usersFirebaseService.createUser(newUser);
 
-  async findAll(): Promise<User[]> {
-    return this.usersFirebaseService.findAllUsers();
+    try {
+      const defaultPlaylist = await this.playlistsService.createDefaultPlaylist(
+        createdUser.uid,
+      );
+
+      const playlistIds = createdUser.playlist_ids || [];
+      if (!playlistIds.includes(defaultPlaylist.id)) {
+        playlistIds.push(defaultPlaylist.id);
+      }
+
+      await this.usersFirebaseService.updateUser(createdUser.uid, {
+        default_playlist: defaultPlaylist.id,
+        playlist_ids: playlistIds,
+      });
+
+      return {
+        ...createdUser,
+        default_playlist: defaultPlaylist.id,
+        playlist_ids: playlistIds,
+      };
+    } catch (error) {
+      console.warn(
+        `Failed to create default playlist for user ${createdUser.uid}:`,
+        error,
+      );
+      return createdUser;
+    }
   }
 
   async findOne(id: string): Promise<User> {
@@ -26,6 +54,34 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException(`User with UID ${id} not found`);
+    }
+
+    if (!user.default_playlist) {
+      try {
+        const defaultPlaylist =
+          await this.playlistsService.createDefaultPlaylist(user.uid);
+
+        const playlistIds = user.playlist_ids || [];
+        if (!playlistIds.includes(defaultPlaylist.id)) {
+          playlistIds.push(defaultPlaylist.id);
+        }
+
+        await this.usersFirebaseService.updateUser(user.uid, {
+          default_playlist: defaultPlaylist.id,
+          playlist_ids: playlistIds,
+        });
+
+        return {
+          ...user,
+          default_playlist: defaultPlaylist.id,
+          playlist_ids: playlistIds,
+        };
+      } catch (error) {
+        console.warn(
+          `Failed to create default playlist for user ${user.uid}:`,
+          error,
+        );
+      }
     }
 
     return user;
