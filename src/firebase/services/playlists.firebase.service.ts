@@ -8,6 +8,23 @@ export class PlaylistsFirebaseService {
   private readonly playlistsCollection = db.collection('playlists');
 
   /**
+   * undefined 값을 필터링하고 null로 대체합니다.
+   */
+  private removeUndefinedValues(data: any): any {
+    const result = {};
+
+    for (const key in data) {
+      if (data[key] !== undefined) {
+        result[key] = data[key];
+      } else {
+        result[key] = null; // undefined를 null로 대체
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * 새로운 플레이리스트를 생성합니다.
    */
   async createPlaylist(playlist: Partial<Playlist>): Promise<Playlist> {
@@ -20,8 +37,8 @@ export class PlaylistsFirebaseService {
       // Generate a new ID if not provided
       const playlistId = playlist.id || db.collection('playlists').doc().id;
 
-      // Prepare data for Firestore
-      const playlistData = {
+      // Prepare data for Firestore and remove undefined values
+      const playlistData = this.removeUndefinedValues({
         ...playlist,
         id: playlistId,
         created_at: new Date(),
@@ -29,7 +46,7 @@ export class PlaylistsFirebaseService {
         is_visible: playlist.is_visible ?? false,
         type: playlist.type || 'user',
         places: playlist.places || [],
-      };
+      });
 
       // Save to Firestore
       await this.playlistsCollection.doc(playlistId).set(playlistData);
@@ -105,6 +122,24 @@ export class PlaylistsFirebaseService {
   }
 
   /**
+   * 특정 사용자의 플레이리스트를 검색합니다.
+   */
+  async findPlaylistsByUser(userId: string): Promise<Playlist[]> {
+    try {
+      const snapshot = await this.playlistsCollection
+        .where('owner', '==', userId)
+        .get();
+
+      return snapshot.docs.map((doc) =>
+        this.convertFirestoreDocToPlaylist(doc),
+      );
+    } catch (error) {
+      console.error(`Error finding playlists for user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * 플레이리스트 정보를 업데이트합니다.
    */
   async updatePlaylist(
@@ -120,11 +155,13 @@ export class PlaylistsFirebaseService {
       }
 
       // Prepare update data
-      const updateData = {
+      const updateData = this.removeUndefinedValues({
         ...playlistData,
-        id: undefined, // Don't allow updating the ID
         updated_at: new Date(), // Update the timestamp
-      };
+      });
+
+      // id는 명시적으로 삭제
+      delete updateData.id;
 
       // Update in Firestore
       await this.playlistsCollection.doc(id).update(updateData);
