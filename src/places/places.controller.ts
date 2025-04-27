@@ -21,7 +21,6 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Place } from './entities/place.entity';
-import { FindPlacesByIdsDto } from './dto/find-by-ids.dto';
 
 @ApiTags('places')
 @Controller('places')

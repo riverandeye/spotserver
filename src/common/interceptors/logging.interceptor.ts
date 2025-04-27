@@ -17,7 +17,9 @@ export class LoggingInterceptor implements NestInterceptor {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
-    const { method, originalUrl, body } = request;
+    const { method, originalUrl } = request;
+    // body가 undefined나 null일 수 있으므로 기본값 빈 객체로 설정
+    const body = request.body || {};
     const userAgent = request.get('user-agent') || '';
     const ip = this.getIpAddress(request);
 
@@ -29,8 +31,8 @@ export class LoggingInterceptor implements NestInterceptor {
       `[${requestId}] Request: ${method} ${originalUrl} - IP: ${ip} - UA: ${userAgent}`,
     );
 
-    // body가 있는 경우에만 로깅
-    if (Object.keys(body).length > 0) {
+    // body가 있고 비어있지 않은 경우에만 로깅
+    if (body && Object.keys(body).length > 0) {
       this.logger.log(
         `[${requestId}] Request Body: ${this.sanitizeBody(body)}`,
       );
