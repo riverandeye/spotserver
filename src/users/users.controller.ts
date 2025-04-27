@@ -8,17 +8,24 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
+import { PlaylistsService } from '../playlists/playlists.service';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @Inject(forwardRef(() => PlaylistsService))
+    private readonly playlistsService: PlaylistsService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
