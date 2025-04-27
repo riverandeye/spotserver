@@ -61,6 +61,14 @@ export class User {
   })
   default_playlist?: string;
 
+  @ApiProperty({
+    description: '익명 사용자 여부',
+    example: false,
+    default: false,
+    type: Boolean,
+  })
+  is_anonymous: boolean;
+
   constructor(data?: Partial<User>) {
     if (data) {
       Object.assign(this, data);
@@ -68,6 +76,11 @@ export class User {
       // Convert timestamp to Date if needed
       if (data.created_time && !(data.created_time instanceof Date)) {
         this.created_time = new Date(data.created_time);
+      }
+
+      // Set default value for is_anonymous if not provided
+      if (data.is_anonymous === undefined) {
+        this.is_anonymous = false;
       }
     }
   }

@@ -57,4 +57,13 @@ export class CreateUserDto {
     type: String,
   })
   default_playlist?: string;
+
+  @ApiProperty({
+    description: '익명 사용자 여부',
+    example: false,
+    default: false,
+    required: false,
+    type: Boolean,
+  })
+  is_anonymous?: boolean;
 }
