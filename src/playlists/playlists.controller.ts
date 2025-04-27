@@ -50,7 +50,6 @@ export class PlaylistsController {
   })
   async findByIds(@Query('ids') ids: string): Promise<Playlist[]> {
     // 쉼표로 구분된 문자열을 배열로 변환
-    console.log(ids);
     const playlistIds = ids.split(',').filter((id) => id.trim().length > 0);
     return this.playlistsService.findByIds(playlistIds);
   }
