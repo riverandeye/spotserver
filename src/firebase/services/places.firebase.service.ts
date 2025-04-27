@@ -5,6 +5,7 @@ import {
   convertFirestoreDocToPlace,
   convertGeoPointToArray,
 } from '../utils/firestore-converter';
+import * as firestore from 'firebase-admin/firestore';
 
 @Injectable()
 export class PlacesFirebaseService {
@@ -225,6 +226,48 @@ export class PlacesFirebaseService {
       return places;
     } catch (error) {
       console.error('Error searching places:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 여러 ID의 장소를 조회합니다.
+   */
+  async findPlacesByIds(ids: string[]): Promise<Place[]> {
+    try {
+      if (!ids || ids.length === 0) {
+        return [];
+      }
+
+      // Firestore는 in 쿼리에 최대 10개의 값만 허용하므로 청크로 나눠 처리
+      const chunkSize = 10;
+      const places: Place[] = [];
+
+      // ID 배열을 청크로 나누어 처리
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+
+        // 청크 크기가 1이면 단일 문서 조회
+        if (chunk.length === 1) {
+          const doc = await this.placesCollection.doc(chunk[0]).get();
+          if (doc.exists) {
+            places.push(convertFirestoreDocToPlace(doc));
+          }
+        } else {
+          // 여러 문서를 in 쿼리로 조회
+          const snapshot = await this.placesCollection
+            .where(firestore.FieldPath.documentId(), 'in', chunk)
+            .get();
+
+          snapshot.docs.forEach((doc) => {
+            places.push(convertFirestoreDocToPlace(doc));
+          });
+        }
+      }
+
+      return places;
+    } catch (error) {
+      console.error('Error fetching places by IDs:', error);
       throw error;
     }
   }

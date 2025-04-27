@@ -95,4 +95,18 @@ export class PlacesService {
       .filter((place) => place.in_main_page === true)
       .slice(0, limit);
   }
+
+  /**
+   * 여러 ID에 해당하는 장소를 조회합니다.
+   */
+  async findByIds(ids: string[]): Promise<Place[]> {
+    // 중복 ID 제거
+    const uniqueIds = [...new Set(ids)];
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    return this.placesFirebaseService.findPlacesByIds(uniqueIds);
+  }
 }

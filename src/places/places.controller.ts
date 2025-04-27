@@ -21,6 +21,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { Place } from './entities/place.entity';
+import { FindPlacesByIdsDto } from './dto/find-by-ids.dto';
 
 @ApiTags('places')
 @Controller('places')
@@ -174,5 +175,25 @@ export class PlacesController {
     @Param('id') id: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.placesService.remove(id);
+  }
+
+  @Get('bulk')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '여러 장소 ID로 장소 조회' })
+  @ApiQuery({
+    name: 'ids',
+    description: '쉼표로 구분된 장소 ID 목록',
+    example: 'place1,place2,place3',
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '여러 장소를 성공적으로 조회했습니다.',
+    type: [Place],
+  })
+  async findByIds(@Query('ids') ids: string): Promise<Place[]> {
+    // 쉼표로 구분된 문자열을 배열로 변환
+    const placeIds = ids.split(',').filter((id) => id.trim().length > 0);
+    return this.placesService.findByIds(placeIds);
   }
 }
