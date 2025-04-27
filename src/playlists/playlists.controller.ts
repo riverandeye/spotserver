@@ -133,23 +133,23 @@ export class PlaylistsController {
 
   @Post(':id/places/:placeId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '플레이리스트에 장소 추가' })
+  @ApiOperation({ summary: '플레이리스트에 장소 추가 (썸네일 자동 처리)' })
   @ApiParam({ name: 'id', description: '플레이리스트 ID' })
   @ApiParam({ name: 'placeId', description: '장소 ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Place has been successfully added to the playlist.',
+    description: '장소가 성공적으로 플레이리스트에 추가되었습니다.',
     type: Playlist,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Playlist or place not found.',
+    description: '플레이리스트 또는 장소를 찾을 수 없습니다.',
   })
   async addPlace(
     @Param('id') id: string,
     @Param('placeId') placeId: string,
   ): Promise<Playlist> {
-    return this.playlistsService.addPlace(id, placeId);
+    return this.playlistsService.addPlaceWithThumbnail(id, placeId);
   }
 
   @Delete(':id/places/:placeId')

@@ -46,6 +46,7 @@ export class PlaylistsFirebaseService {
         is_visible: playlist.is_visible ?? false,
         type: playlist.type || 'user',
         places: playlist.places || [],
+        thumbnails: playlist.thumbnails || [],
       });
 
       // Save to Firestore
@@ -203,6 +204,7 @@ export class PlaylistsFirebaseService {
   async addPlaceToPlaylist(
     playlistId: string,
     placeId: string,
+    thumbnailUrl?: string,
   ): Promise<Playlist | null> {
     try {
       const playlistDoc = await this.playlistsCollection.doc(playlistId).get();
@@ -223,11 +225,27 @@ export class PlaylistsFirebaseService {
         ? [...playlist.places, placeId]
         : [placeId];
 
-      // Update the playlist
-      await this.playlistsCollection.doc(playlistId).update({
+      // 업데이트할 데이터 준비
+      const updateData: any = {
         places,
         updated_at: new Date(),
-      });
+      };
+
+      // 썸네일 URL이 제공된 경우 썸네일 배열 업데이트
+      if (thumbnailUrl) {
+        const newThumbnail = { url: thumbnailUrl, place_id: placeId };
+        const thumbnails = playlist.thumbnails || [];
+
+        // 최대 5개의 썸네일만 유지하기 위해 필요한 경우 가장 오래된 항목 제거
+        if (thumbnails.length >= 5) {
+          thumbnails.shift(); // 첫 번째 항목 제거
+        }
+
+        updateData.thumbnails = [...thumbnails, newThumbnail];
+      }
+
+      // Update the playlist
+      await this.playlistsCollection.doc(playlistId).update(updateData);
 
       // Get the updated playlist
       const updatedDoc = await this.playlistsCollection.doc(playlistId).get();
@@ -265,11 +283,22 @@ export class PlaylistsFirebaseService {
       // Remove the place from the playlist
       const places = playlist.places.filter((id) => id !== placeId);
 
-      // Update the playlist
-      await this.playlistsCollection.doc(playlistId).update({
+      // 업데이트할 데이터 준비
+      const updateData: any = {
         places,
         updated_at: new Date(),
-      });
+      };
+
+      // 해당 장소에 관련된 썸네일 제거
+      if (playlist.thumbnails && playlist.thumbnails.length > 0) {
+        const thumbnails = playlist.thumbnails.filter(
+          (thumbnail) => thumbnail.place_id !== placeId,
+        );
+        updateData.thumbnails = thumbnails;
+      }
+
+      // Update the playlist
+      await this.playlistsCollection.doc(playlistId).update(updateData);
 
       // Get the updated playlist
       const updatedDoc = await this.playlistsCollection.doc(playlistId).get();
@@ -307,11 +336,15 @@ export class PlaylistsFirebaseService {
       });
     }
 
+    // thumbnails 필드 처리
+    const thumbnails = Array.isArray(data.thumbnails) ? data.thumbnails : [];
+
     return new Playlist({
       ...data,
       id: doc.id,
       owner: owner,
       places: places,
+      thumbnails: thumbnails,
       created_at: convertTimestampToDate(data.created_at),
       updated_at: convertTimestampToDate(data.updated_at),
     });
