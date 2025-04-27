@@ -63,10 +63,6 @@ export class PlaylistsService {
     };
   }
 
-  async findByUser(userId: string): Promise<Playlist[]> {
-    return this.playlistsFirebaseService.findPlaylistsByUser(userId);
-  }
-
   async findByPlace(placeId: string): Promise<Playlist[]> {
     return this.playlistsFirebaseService.findPlaylistsByPlace(placeId);
   }

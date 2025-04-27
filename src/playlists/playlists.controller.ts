@@ -117,19 +117,6 @@ export class PlaylistsController {
     });
   }
 
-  @Get('user/:userId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '특정 사용자의 플레이리스트 조회' })
-  @ApiParam({ name: 'userId', description: '사용자 ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User playlists retrieved successfully.',
-    type: [Playlist],
-  })
-  async findByUser(@Param('userId') userId: string): Promise<Playlist[]> {
-    return this.playlistsService.findByUser(userId);
-  }
-
   @Get('place/:placeId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '특정 장소가 포함된 플레이리스트 조회' })
