@@ -71,10 +71,6 @@ export class PlaylistsService {
     };
   }
 
-  async findByPlace(placeId: string): Promise<Playlist[]> {
-    return this.playlistsFirebaseService.findPlaylistsByPlace(placeId);
-  }
-
   async addPlace(playlistId: string, placeId: string): Promise<Playlist> {
     // 먼저 장소가 존재하는지 확인합니다.
     const place = await this.placesFirebaseService.findPlaceById(placeId);

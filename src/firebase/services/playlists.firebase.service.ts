@@ -198,31 +198,6 @@ export class PlaylistsFirebaseService {
   }
 
   /**
-   * 특정 장소가 포함된 플레이리스트를 검색합니다.
-   */
-  async findPlaylistsByPlace(placeId: string): Promise<Playlist[]> {
-    try {
-      // Firestore doesn't support direct array-contains queries with nested documents
-      // So we'll fetch all playlists and filter them client-side
-      const snapshot = await this.playlistsCollection.get();
-
-      const playlists = snapshot.docs
-        .map((doc) => this.convertFirestoreDocToPlaylist(doc))
-        .filter(
-          (playlist) => playlist.places && playlist.places.includes(placeId),
-        );
-
-      return playlists;
-    } catch (error) {
-      console.error(
-        `Error finding playlists containing place ${placeId}:`,
-        error,
-      );
-      throw error;
-    }
-  }
-
-  /**
    * 장소를 플레이리스트에 추가합니다.
    */
   async addPlaceToPlaylist(

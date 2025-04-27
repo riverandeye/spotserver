@@ -6,23 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   HttpStatus,
   HttpCode,
-  NotFoundException,
   Inject,
   forwardRef,
 } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Playlist } from './entities/playlist.entity';
 import { UsersService } from '../users/users.service';
 
@@ -82,19 +74,6 @@ export class PlaylistsController {
     }
 
     return createdPlaylist;
-  }
-
-  @Get('place/:placeId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '특정 장소가 포함된 플레이리스트 조회' })
-  @ApiParam({ name: 'placeId', description: '장소 ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Playlists containing the place retrieved successfully.',
-    type: [Playlist],
-  })
-  async findByPlace(@Param('placeId') placeId: string): Promise<Playlist[]> {
-    return this.playlistsService.findByPlace(placeId);
   }
 
   @Get(':id')
