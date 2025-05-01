@@ -234,24 +234,23 @@ export class PlaylistsFirebaseService {
 
       // 썸네일 URL이 제공된 경우 썸네일 배열 업데이트
       if (thumbnailUrl) {
-        const newThumbnail = {
-          url: thumbnailUrl,
-          place_id: placeId,
-        };
         const thumbnails = playlist.thumbnails || [];
 
-        // 최대 5개의 썸네일만 유지하기 위해 필요한 경우 가장 오래된 항목 제거
-        if (thumbnails.length >= 5) {
-          thumbnails.shift(); // 첫 번째 항목 제거
+        // 썸네일이 4개 미만인 경우에만 새 썸네일 추가
+        if (thumbnails.length < 4) {
+          const newThumbnail = {
+            url: thumbnailUrl,
+            place_id: placeId,
+          };
+
+          // 썸네일 객체를 일반 객체로 변환
+          const serializedThumbnails = thumbnails.map((thumb) => ({
+            url: thumb.url,
+            place_id: thumb.place_id,
+          }));
+
+          updateData.thumbnails = [...serializedThumbnails, newThumbnail];
         }
-
-        // 썸네일 객체를 일반 객체로 변환
-        const serializedThumbnails = thumbnails.map((thumb) => ({
-          url: thumb.url,
-          place_id: thumb.place_id,
-        }));
-
-        updateData.thumbnails = [...serializedThumbnails, newThumbnail];
       }
 
       // Update the playlist
@@ -301,10 +300,15 @@ export class PlaylistsFirebaseService {
 
       // 해당 장소에 관련된 썸네일 제거
       if (playlist.thumbnails && playlist.thumbnails.length > 0) {
-        const thumbnails = playlist.thumbnails.filter(
-          (thumbnail) => thumbnail.place_id !== placeId,
-        );
-        updateData.thumbnails = thumbnails;
+        // 썸네일 객체를 일반 객체로 변환하여 직렬화 문제 해결
+        const serializedThumbnails = playlist.thumbnails
+          .filter((thumbnail) => thumbnail.place_id !== placeId)
+          .map((thumb) => ({
+            url: thumb.url,
+            place_id: thumb.place_id,
+          }));
+
+        updateData.thumbnails = serializedThumbnails;
       }
 
       // Update the playlist
