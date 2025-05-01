@@ -254,7 +254,7 @@ export class PlacesFirebaseService {
             places.push(convertFirestoreDocToPlace(doc));
           }
         } else {
-          // 여러 문서를 in 쿼리로 조회
+          // 여러 문서 조회
           const snapshot = await this.placesCollection
             .where(firestore.FieldPath.documentId(), 'in', chunk)
             .get();

@@ -234,7 +234,10 @@ export class PlaylistsFirebaseService {
 
       // 썸네일 URL이 제공된 경우 썸네일 배열 업데이트
       if (thumbnailUrl) {
-        const newThumbnail = { url: thumbnailUrl, place_id: placeId };
+        const newThumbnail = {
+          url: thumbnailUrl,
+          place_id: placeId,
+        };
         const thumbnails = playlist.thumbnails || [];
 
         // 최대 5개의 썸네일만 유지하기 위해 필요한 경우 가장 오래된 항목 제거
@@ -242,13 +245,19 @@ export class PlaylistsFirebaseService {
           thumbnails.shift(); // 첫 번째 항목 제거
         }
 
-        updateData.thumbnails = [...thumbnails, newThumbnail];
+        // 썸네일 객체를 일반 객체로 변환
+        const serializedThumbnails = thumbnails.map((thumb) => ({
+          url: thumb.url,
+          place_id: thumb.place_id,
+        }));
+
+        updateData.thumbnails = [...serializedThumbnails, newThumbnail];
       }
 
       // Update the playlist
       await this.playlistsCollection.doc(playlistId).update(updateData);
 
-      // Get the updated playlist
+      // Get updated document
       const updatedDoc = await this.playlistsCollection.doc(playlistId).get();
       return this.convertFirestoreDocToPlaylist(updatedDoc);
     } catch (error) {
