@@ -373,13 +373,25 @@ export class PlaylistsFirebaseService {
         return [];
       }
 
+      // ID에서 실제 문서 ID만 추출 (경로 형식인 경우)
+      const cleanIds = ids
+        .map((id) => {
+          // 'playlists/abcXYZ123' 형식에서 'abcXYZ123'만 추출
+          if (id.includes('/')) {
+            const parts = id.split('/');
+            return parts[parts.length - 1];
+          }
+          return id;
+        })
+        .filter(Boolean) as string[];
+
       // Firestore는 in 쿼리에 최대 10개의 값만 허용하므로 청크로 나눠 처리
       const chunkSize = 10;
       const playlists: Playlist[] = [];
 
       // ID 배열을 청크로 나누어 처리
-      for (let i = 0; i < ids.length; i += chunkSize) {
-        const chunk = ids.slice(i, i + chunkSize);
+      for (let i = 0; i < cleanIds.length; i += chunkSize) {
+        const chunk = cleanIds.slice(i, i + chunkSize);
 
         // 청크 크기가 1이면 단일 문서 조회
         if (chunk.length === 1) {
