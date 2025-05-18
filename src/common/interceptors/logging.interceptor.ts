@@ -44,13 +44,13 @@ export class LoggingInterceptor implements NestInterceptor {
         const duration = endTime - startTime;
         const statusCode = response.statusCode;
 
-        // 응답 로깅 (body 포함)
+        // 응답 로깅 (상태 코드와 소요 시간만)
         this.logger.log(
           `[${requestId}] Response: ${statusCode} - ${method} ${originalUrl} - ${duration}ms`,
         );
 
-        // 응답 데이터가 있는 경우에만 로깅
-        if (data) {
+        // 에러 상태 코드(4xx, 5xx)인 경우에만 응답 본문 로깅
+        if (data && statusCode >= 400) {
           this.logger.log(
             `[${requestId}] Response Body: ${this.sanitizeBody(data)}`,
           );
