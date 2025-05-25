@@ -7,6 +7,7 @@ import { PlaylistsModule } from './playlists/playlists.module';
 import { AdminModule } from './admin/admin.module';
 import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from './chat/chat.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ChatModule } from './chat/chat.module';
     PlaylistsModule,
     AdminModule,
     ChatModule,
+    CommonModule,
   ],
 })
 export class AppModule {}
