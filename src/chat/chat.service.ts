@@ -26,7 +26,7 @@ export class ChatService {
   ) {}
 
   /**
-   * 메인 추천 처리
+   * Main recommendation processing
    */
   async processRecommendation(
     query: string,
@@ -50,21 +50,21 @@ export class ChatService {
   }
 
   /**
-   * Pinecone 기반 장소 검색 후 Firestore에서 실제 Place 데이터 조회
+   * Search places using Pinecone and retrieve actual Place data from Firestore
    */
   private async fetchPlaces(
     query: string,
     maxResults: number,
   ): Promise<Place[]> {
     try {
-      // 1. Cloud Function API 호출하여 추천 장소 ID 목록 가져오기
+      // 1. Call Cloud Function API to get recommended place IDs
       const response = await axios.post(
         this.PLACE_SEARCH_URL,
         { query, max_results: maxResults },
         { headers: { 'Content-Type': 'application/json' } },
       );
 
-      // 2. 응답에서 장소 ID만 추출
+      // 2. Extract place IDs from response
       const placeIds: string[] = [];
       if (
         response.status === 200 &&
@@ -73,7 +73,7 @@ export class ChatService {
       ) {
         response.data.results.forEach((place) => {
           if (place.id) {
-            // 'places/id' 형식이면 순수 ID만 추출, 아니면 그대로 사용
+            // Extract pure ID if format is 'places/id', otherwise use as is
             const placeId = place.id.includes('/')
               ? place.id.split('/').pop()
               : place.id;
@@ -82,21 +82,21 @@ export class ChatService {
         });
       }
 
-      // 3. 추출한 ID가 없으면 빈 배열 반환
+      // 3. Return empty array if no IDs were extracted
       if (placeIds.length === 0) {
         return [];
       }
 
-      // 4. PlacesService를 통해 실제 DB에서 Place 객체 조회
+      // 4. Retrieve actual Place objects from DB using PlacesService
       return await this.placesService.findByIds(placeIds);
     } catch (e) {
-      console.error('Cloud Function 장소 검색 오류:', e);
+      console.error('Cloud Function place search error:', e);
       return [];
     }
   }
 
   /**
-   * 음식/맛집 관련 쿼리인지 검증
+   * Validate if query is related to food/restaurants
    */
   private async isFoodQuery(query: string): Promise<boolean> {
     try {
@@ -139,7 +139,7 @@ Important: Do not generate any additional text or responses under any circumstan
   }
 
   /**
-   * 추천 메시지 생성
+   * Generate recommendation message
    */
   private async generateRecommendationMessage(
     query: string,
@@ -188,13 +188,14 @@ Important: Do not generate any additional text or responses under any circumstan
   private buildFunctionDefinition() {
     return {
       name: this.FUNCTION_NAME,
-      description: '음식/맛집 질문 판별 결과를 제공합니다',
+      description: 'Provides the result of food/restaurant question validation',
       parameters: {
         type: 'object',
         properties: {
           is_valid: {
             type: 'boolean',
-            description: '사용자 요청이 맛집/음식 관련 질문인지 여부',
+            description:
+              'Whether the user request is related to food/restaurants',
           },
         },
         required: ['is_valid'],
@@ -205,7 +206,7 @@ Important: Do not generate any additional text or responses under any circumstan
   private formatPlacesData(places: Place[]): string {
     const placeDescriptions = places.map(
       (place) =>
-        `- ${place.name}: ${place.address}, 타입: ${place.type || 'N/A'}`,
+        `- ${place.name}: ${place.address}, Type: ${place.type || 'N/A'}`,
     );
     return placeDescriptions.join('\n');
   }
@@ -227,7 +228,7 @@ Follow these rules:
     query: string,
     placesText: string,
   ): string {
-    return `\n검색어: ${query}\n검색 결과:\n${placesText}\n\n위 정보를 바탕으로 자연스러운 맛집 추천 메시지를 작성해주세요.\n`;
+    return `\nSearch query: ${query}\nSearch results:\n${placesText}\n\nPlease write a natural restaurant recommendation message based on the information above.\n`;
   }
 
   private extractResponseContent(response: any, query?: string): string {

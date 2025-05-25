@@ -147,7 +147,7 @@ export class UsersController {
       fileFilter: (req, file, callback) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
           return callback(
-            new BadRequestException('이미지 파일만 업로드 가능합니다.'),
+            new BadRequestException('Only image files are allowed.'),
             false,
           );
         }
@@ -160,7 +160,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UploadProfileResponseDto> {
     if (!file) {
-      throw new BadRequestException('이미지 파일이 필요합니다.');
+      throw new BadRequestException('Image file is required.');
     }
 
     return this.usersService.uploadProfileImage(id, file);

@@ -25,7 +25,7 @@ export class S3Service {
     );
 
     if (!accessKeyId || !secretAccessKey) {
-      this.logger.error('AWS 자격 증명이 설정되지 않았습니다.');
+      this.logger.error('AWS credentials are not configured.');
     }
 
     this.s3Client = new S3Client({
@@ -43,25 +43,25 @@ export class S3Service {
       this.configService.get<string>('S3_BUCKET_NAME') ||
       this.configService.get<string>('AWS_S3_BUCKET_NAME');
     if (!bucketName) {
-      this.logger.error('S3 버킷 이름이 설정되지 않았습니다.');
+      this.logger.error('S3 bucket name is not configured.');
     }
     this.bucketName = bucketName || '';
   }
 
   /**
-   * S3 버킷에 파일을 업로드합니다.
-   * @param file 업로드할 파일 객체
-   * @param path S3 내 파일 경로 (폴더)
-   * @returns 업로드된 파일의 URL
+   * Upload a file to the S3 bucket.
+   * @param file File object to upload
+   * @param path File path (folder) in S3
+   * @returns URL of the uploaded file
    */
   async uploadFile(file: Express.Multer.File, path: string): Promise<string> {
     try {
       if (!file) {
-        throw new Error('파일이 존재하지 않습니다.');
+        throw new Error('File does not exist.');
       }
 
       if (!this.bucketName) {
-        throw new Error('S3 버킷 이름이 설정되지 않았습니다.');
+        throw new Error('S3 bucket name is not configured.');
       }
 
       const fileExtension = file.originalname.split('.').pop();
@@ -78,11 +78,11 @@ export class S3Service {
       const command = new PutObjectCommand(uploadParams);
       await this.s3Client.send(command);
 
-      // S3 파일 URL 형식 반환
+      // Return S3 file URL format
       return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${fileName}`;
     } catch (error) {
-      this.logger.error(`파일 업로드 실패: ${error.message}`, error.stack);
-      throw new Error(`파일 업로드 중 오류가 발생했습니다: ${error.message}`);
+      this.logger.error(`File upload failed: ${error.message}`, error.stack);
+      throw new Error(`Error occurred while uploading file: ${error.message}`);
     }
   }
 }

@@ -59,31 +59,31 @@ export class UsersService {
   }
 
   /**
-   * 사용자 프로필 이미지를 업로드하고 업데이트합니다.
-   * @param id 사용자 ID
-   * @param file 업로드할 이미지 파일
-   * @returns 업로드 결과 및 새 프로필 이미지 URL
+   * Upload and update user profile image.
+   * @param id User ID
+   * @param file Image file to upload
+   * @returns Upload result and new profile image URL
    */
   async uploadProfileImage(
     id: string,
     file: Express.Multer.File,
   ): Promise<UploadProfileResponseDto> {
-    // 사용자 존재 여부 확인
+    // Check if user exists
     const user = await this.findOne(id);
 
-    // S3에 파일 업로드 (users/사용자ID/profile 경로에 저장)
+    // Upload file to S3 (store in users/userID/profile path)
     const photoUrl = await this.s3Service.uploadFile(
       file,
       `users/${id}/profile`,
     );
 
-    // 사용자 정보 업데이트 (프로필 이미지 URL)
+    // Update user information (profile image URL)
     const updatedUser = await this.update(id, { photo_url: photoUrl });
 
     return {
       success: true,
       photo_url: updatedUser.photo_url,
-      message: '프로필 이미지가 성공적으로 업로드되었습니다.',
+      message: 'Profile image successfully uploaded.',
     };
   }
 }
